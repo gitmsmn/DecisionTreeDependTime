@@ -64,8 +64,19 @@ class GraftRegressionTree:
             self.tree_df['feature_index'][i] = target_tdtree_nodes['feature_index'][i]
             self.tree_df['threshold'][i] = target_tdtree_nodes['threshold'][i]
             self.tree_df['leaf'][i] = target_tdtree_nodes['leaf'][i]
-        # 現時点での評価値
-        # 現時点での予測値の推移の図示
+            
+    def check_structure(self):
+        """
+        接ぎ木した後のNaNチェック
+        """
+        for node_index in range(self.__count_node(self.max_depth-1)[0]):
+            left_node_index = node_index*2 + 1
+            right_node_index = node_index*2 + 2
+            # もしleafがTrueなら問題なし
+            if not self.tree_df['leaf'][node_index]:
+                if not np.isnan(self.tree_df['pred'][node_index]):
+                    if np.isnan(self.tree_df['pred'][left_node_index]) or np.isnan(self.tree_df['pred'][right_node_index]):
+                        self.tree_df['leaf'][node_index] = True
 
     def predict(self, x_test_ls):
         """
@@ -74,7 +85,7 @@ class GraftRegressionTree:
         """
         pred_array = []
         
-        for pred_target_index in range(x_test_ls[0].shape[0]):            
+        for pred_target_index in range(x_test_ls[0].shape[0]):
             current_node_index = 0
             for time in range(self.max_depth):
                 target_tdtree_index = self.tree_df.iloc[current_node_index]['tdtree_index']

@@ -19,23 +19,20 @@ class TimeDependentTree:
     時間依存木のクラス
     """
 
-    def __init__(self, x_train, y_train, x_test, y_test, max_depth, min_samples_leaf):
+    def __init__(self, x_train, y_train, max_depth, min_samples_leaf):
         """
         コンストラクタ
 
         Args:
           x_train：訓練データの説明変数
           y_train：訓練データの目的変数
-          x_test：検証データの説明変数
-          y_test：検証データの目的変数
           max_depth：木の最大の深さ
+          min_samples_leaf：ノードが持つべき最小のサンプル数
         """
 
         # Public Member
         self.x_train = x_train
         self.y_train = y_train
-        self.x_test = x_test
-        self.y_test = y_test
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
         self.tree_df = pd.DataFrame(columns=['n',  'mean',  'depth', 'eval', 'feature_index', 'threshold', 'leaf'], 
@@ -113,14 +110,14 @@ class TimeDependentTree:
         # 後処理
         self.tree_df = self.tree_df[:self.__count_node(self.max_depth)[0]]
         
-    def predict(self):
+    def predict(self, x_test):
         """
         時間依存木の予測
         
         """
         pred_array = []
         
-        for pred_target_index in range(self.x_test.shape[0]):            
+        for pred_target_index in range(x_test.shape[0]):            
             current_depth = 0
             for i in range(self.max_depth):
                 # 葉であれば
@@ -128,7 +125,7 @@ class TimeDependentTree:
                     pred_array.append(self.tree_df.loc[current_depth, 'mean'])
                     break;
                 # 節であれば
-                elif self.x_test[pred_target_index][i] < self.tree_df.loc[current_depth, 'threshold']:
+                elif x_test[pred_target_index][i] < self.tree_df.loc[current_depth, 'threshold']:
                     current_depth = current_depth*2 + 1
                 else:
                     current_depth = current_depth*2 + 2
