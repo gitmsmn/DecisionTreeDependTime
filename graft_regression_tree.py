@@ -17,29 +17,21 @@ from sklearn.metrics import mean_squared_error
 #----------------------------------------------------------------------
 class GraftRegressionTree:
     """
-    時間依存木のクラス
+    接ぎ木のクラス
     """
 
-    def __init__(self, y_test, tdtree):
+    def __init__(self, tdtree):
         """
         コンストラクタ
 
         Args:
-          x_test：検証データの説明変数
-          y_test：検証データの目的変数
-          max_depth：木の最大の深さ
+          tdtree：時間依存木の配列
         """
 
         # Public Member
-        self.y_test = y_test
         self.tdtree = tdtree
         self.max_depth = tdtree[0].tree_df.iloc[-1]['depth'] + 1
         self.tree_df = pd.DataFrame(columns=['tdtree_index',  'pred',  'depth', 'eval', 'feature_index', 'threshold', 'leaf'], index=range(self.__count_node(self.max_depth)[0]))
-
-    #---------------------------------------
-    # クラス定数
-    #---------------------------------------
-
 
     #---------------------------------------
     # public関数
