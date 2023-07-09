@@ -10,6 +10,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.metrics import mean_squared_error
 
 #----------------------------------------------------------------------
 # クラス定義
@@ -44,31 +45,27 @@ class GraftRegressionTree:
     # public関数
     #---------------------------------------
 
-    def build_tree(self, target_depth, tdtree_index):
+    def build_tree(self, tdtree_index_ls):
         """
         木を構築する
         
         Args:
-          target_depth：構築する深さ
-          tdtree_index：採用する時間依存木の種類
+          tdtree_index_ls：採用する時間依存木の種類
         """
-        # 木の剪定（構造を取得）
-        target_tdtree = self.tdtree[tdtree_index].tree_df
-        target_tdtree_nodes = target_tdtree[target_tdtree['depth'] == target_depth]
-        # 構造をgrtreeに格納
-        for i in self.__count_node(target_depth+1)[1]:
-            self.tree_df['tdtree_index'][i] = tdtree_index
-            self.tree_df['pred'][i] = target_tdtree_nodes['mean'][i]
-            self.tree_df['depth'][i] = target_tdtree_nodes['depth'][i]
-            self.tree_df['eval'][i] = target_tdtree_nodes['eval'][i]
-            self.tree_df['feature_index'][i] = target_tdtree_nodes['feature_index'][i]
-            self.tree_df['threshold'][i] = target_tdtree_nodes['threshold'][i]
-            self.tree_df['leaf'][i] = target_tdtree_nodes['leaf'][i]
-            
-    def check_structure(self):
-        """
-        接ぎ木した後のNaNチェック
-        """
+        for time in range(len(tdtree_index_ls)):
+            # 木の剪定（構造を取得）
+            target_tdtree = self.tdtree[tdtree_index_ls[time]].tree_df
+            target_tdtree_nodes = target_tdtree[target_tdtree['depth'] == time]
+            # 構造をgrtreeに格納
+            for i in self.__count_node(time+1)[1]:
+                self.tree_df['tdtree_index'][i] = tdtree_index_ls[time]
+                self.tree_df['pred'][i] = target_tdtree_nodes['mean'][i]
+                self.tree_df['depth'][i] = target_tdtree_nodes['depth'][i]
+                self.tree_df['eval'][i] = target_tdtree_nodes['eval'][i]
+                self.tree_df['feature_index'][i] = target_tdtree_nodes['feature_index'][i]
+                self.tree_df['threshold'][i] = target_tdtree_nodes['threshold'][i]
+                self.tree_df['leaf'][i] = target_tdtree_nodes['leaf'][i]
+        # 接ぎ木した後のNaNチェック
         for node_index in range(self.__count_node(self.max_depth-1)[0]):
             left_node_index = node_index*2 + 1
             right_node_index = node_index*2 + 2
@@ -100,6 +97,11 @@ class GraftRegressionTree:
                     current_node_index = current_node_index*2 + 2
                     
         return pred_array
+    
+    def evalution(self, y_true, y_pred, method):
+        if method == "mse":
+            return mean_squared_error(y_true, y_pred)
+        
     #---------------------------------------
     # private methods
     #---------------------------------------
